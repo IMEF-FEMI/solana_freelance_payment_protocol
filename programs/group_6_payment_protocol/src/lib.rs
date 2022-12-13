@@ -1,103 +1,55 @@
 use anchor_lang::prelude::*;
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
-pub use crate::errors::*;
 
-mod errors;
+pub mod errors;
+pub mod instructions;
+pub mod state;
+pub mod utils;
+
+use instructions::*;
 
 #[program]
 pub mod group_6_payment_protocol {
-    use anchor_lang::{solana_program::native_token::LAMPORTS_PER_SOL, system_program};
 
     use super::*;
 
-    pub fn start_project(
-        ctx: Context<StartProjectContext>,
+    pub fn initialize_project(
+        ctx: Context<InitializeProjectContext>,
         total_funds_for_project: u64,
         milestones: u8,
-        bump: u8,
     ) -> Result<()> {
-        //initialize data acct
-        let mut project_info_account = ctx.accounts.project_info_account.clone();
-        project_info_account.client = ctx.accounts.client.key();
-        project_info_account.freelancer = ctx.accounts.freelancer.key();
-        project_info_account.total_funds_for_project = total_funds_for_project;
-        project_info_account.funds_locked = total_funds_for_project;
-        project_info_account.milestones = milestones;
-        project_info_account.milestones_reached = 0;
-        project_info_account.signer_bump = bump;
-
-        //transfer funds and lock funds from client
-        let transfer_accounts = system_program::Transfer {
-            from: ctx.accounts.client.to_account_info().clone(),
-            to: ctx.accounts.token_escrow.to_account_info().clone(),
-        };
-        let ctx = CpiContext::new(
-            ctx.accounts.system_program.to_account_info(),
-            transfer_accounts,
-        );
-        system_program::transfer(ctx, LAMPORTS_PER_SOL * total_funds_for_project)?;
-
-        Ok(())
+        instructions::project::initialize_project(ctx, total_funds_for_project, milestones)
     }
 
-    pub fn cancel
+    // update the state of the project
+    //The only way this can be invoked
+    // is via a recursive call from execute_transaction -> start_project.
+    pub fn start_project(ctx: Context<MultisigAuth>) -> Result<()> {
+        instructions::project::start_project(ctx)
+    }
+    ///stop the project before it gets started(project status changes to running)
+    pub fn cancel_project(ctx: Context<StopProjectContext>) -> Result<()> {
+        instructions::project::cancel_project(ctx)
+    }
+    // withdraw funds for completed milestones
+    // so freelancer can withdraw funds for the milestone
+    //The only way this can be invoked
+    // is via a recursive call from execute_transaction -> start_project.
+    pub fn withdraw_milestone_funds(ctx: Context<WithdrawMilestoneFundsAuth>) -> Result<()> {
+        instructions::project::withdraw_milestone_funds(ctx)
+    }
+
+    // mark current milestone as completed
+    // so freelancer can withdraw funds for the milestone
+    //The only way this can be invoked
+    // is via a recursive call from execute_transaction -> start_project.
+    pub fn check_current_milestone(ctx: Context<MultisigAuth>) -> Result<()> {
+        instructions::project::mark_current_milestone_completed(ctx)
+    }
+
+    ///collective effort to stop the project regardless of the current state
+    pub fn stop_project(ctx: Context<MultisigAuth>) -> Result<()> {
+        instructions::project::stop_project(ctx)
+    }
 }
-
-#[derive(Accounts)]
-pub struct StartProjectContext<'info> {
-    #[account(
-        init,
-        payer = client,
-        space = 8 + ProjectInfo::MAX_SIZE,
-        seeds = [
-            b"project_info_account",
-            client.key().as_ref(),
-            freelancer.key().as_ref(),
-        ],
-        bump,
-    )]
-    project_info_account: Account<'info, ProjectInfo>,
-    #[account(
-        seeds = [
-            b"token_escrow",
-            project_info_account.key().as_ref()
-        ],
-        bump
-    )]
-    token_escrow: AccountInfo<'info>,
-    freelancer: AccountInfo<'info>,
-    #[account(mut)]
-    client: Signer<'info>,
-    system_program: Program<'info, System>,
-}
-
-
-
-/// state
-#[account]
-pub struct ProjectInfo {
-    total_funds_for_project: u64,
-    funds_locked: u64,
-    milestones: u8,
-    milestones_reached: u8,
-    client: Pubkey,
-    freelancer: Pubkey,
-    signer_bump: u8,
-}
-
-impl ProjectInfo {
-    pub const MAX_SIZE: usize = 8 //    total_funds_for_project
-    + 8 //funds_locked
-    + 1 //milestones
-    + 1 //milestones_reached
-    + 32 //client
-    + 32 //freelancer
-    + 1; //signer_bump
-         //see more at: https://book.anchor-lang.com/anchor_references/space.html
-}
-
-// #[derive(Clone, AnchorSerialize, AnchorDeserialize)]
-// pub struct InitEscrowParams {
-//
-// }
