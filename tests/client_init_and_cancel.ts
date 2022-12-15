@@ -4,7 +4,7 @@ import { Group6PaymentProtocol } from "../target/types/group_6_payment_protocol"
 import { SystemProgram, Transaction, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { assert, expect } from "chai";
 
-describe("group_6_payment_protocol", () => {
+describe("Client Initializes and cancels", () => {
   // Configure the client to use the local cluster.
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);

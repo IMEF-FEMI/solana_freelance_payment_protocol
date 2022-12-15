@@ -107,7 +107,8 @@ pub struct CreateTransaction<'info> {
         payer = proposer,
         space = 8 + Transaction::MAX_SIZE,
         seeds = [
-            b"multisig",
+            b"multisig_transaction",
+            multisig.key().as_ref(),
             multisig.seqno.to_le_bytes().as_ref(),
         ],
         bump

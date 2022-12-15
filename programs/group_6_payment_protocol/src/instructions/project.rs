@@ -61,13 +61,14 @@ pub fn mark_current_milestone_completed(ctx: Context<MultisigAuth>) -> Result<()
 // so freelancer can withdraw funds for the milestone
 //The only way this can be invoked
 // is via a recursive call from execute_transaction -> start_project.
-pub fn withdraw_milestone_funds(ctx: Context<WithdrawMilestoneFundsAuth>) -> Result<()> {
+pub fn withdraw_milestone_funds(ctx: Context<WithdrawMilestoneFundsContext>) -> Result<()> {
     let project_info = &mut ctx.accounts.project_info_account;
 
     let amount_per_milestone = project_info
         .total_project_funds
         .checked_div(project_info.milestones.into())
         .unwrap();
+
     let milestone_funds_withdrawn_so_far = project_info.milestone_funds_withdrawn;
     let milestones_not_withdrawn = project_info
         .milestones_reached
@@ -96,6 +97,7 @@ pub fn withdraw_milestone_funds(ctx: Context<WithdrawMilestoneFundsAuth>) -> Res
         amount_to_withdraw,
     )?;
 
+    ctx.accounts.project_info_account.milestone_funds_withdrawn += 1;
     Ok(())
 }
 
@@ -231,12 +233,9 @@ pub struct MultisigAuth<'info> {
 }
 
 #[derive(Accounts)]
-pub struct WithdrawMilestoneFundsAuth<'info> {
+pub struct WithdrawMilestoneFundsContext<'info> {
     #[account(mut)]
     project_info_account: Box<Account<'info, ProjectInfo>>,
-    ///CHECK
-    #[account(mut)]
-    freelancer: AccountInfo<'info>,
     /// CHECK:
     #[account(
         mut,
@@ -247,14 +246,15 @@ pub struct WithdrawMilestoneFundsAuth<'info> {
         bump
     )]
     token_escrow: AccountInfo<'info>,
+
     #[account(
-        seeds = [b"multisig", project_info_account.key().as_ref()],
-        bump,
+        mut,
+        constraint = project_info_account.freelancer == freelancer.key()
     )]
-    multisig_signer: Signer<'info>,
+    freelancer: Signer<'info>,
     system_program: Program<'info, System>,
 }
-impl<'info> WithdrawMilestoneFundsAuth<'info> {
+impl<'info> WithdrawMilestoneFundsContext<'info> {
     pub fn transfer_funds_to_freelancer(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
         let transfer_acct = Transfer {
             from: self.token_escrow.to_account_info().clone(),

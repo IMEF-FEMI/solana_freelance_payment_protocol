@@ -8,6 +8,7 @@ pub mod state;
 pub mod utils;
 
 use instructions::*;
+use state::*;
 
 #[program]
 pub mod group_6_payment_protocol {
@@ -36,7 +37,7 @@ pub mod group_6_payment_protocol {
     // so freelancer can withdraw funds for the milestone
     //The only way this can be invoked
     // is via a recursive call from execute_transaction -> start_project.
-    pub fn withdraw_milestone_funds(ctx: Context<WithdrawMilestoneFundsAuth>) -> Result<()> {
+    pub fn withdraw_milestone_funds(ctx: Context<WithdrawMilestoneFundsContext>) -> Result<()> {
         instructions::project::withdraw_milestone_funds(ctx)
     }
 
@@ -44,12 +45,25 @@ pub mod group_6_payment_protocol {
     // so freelancer can withdraw funds for the milestone
     //The only way this can be invoked
     // is via a recursive call from execute_transaction -> start_project.
-    pub fn check_current_milestone(ctx: Context<MultisigAuth>) -> Result<()> {
+    pub fn mark_current_milestone_completed(ctx: Context<MultisigAuth>) -> Result<()> {
         instructions::project::mark_current_milestone_completed(ctx)
     }
 
     ///collective effort to stop the project regardless of the current state
     pub fn stop_project(ctx: Context<MultisigAuth>) -> Result<()> {
         instructions::project::stop_project(ctx)
+    }
+
+    pub fn create_transaction(
+        ctx: Context<CreateTransaction>,
+        pid: Pubkey,
+        transaction_accounts: Vec<TransactionAccount>,
+        data: Vec<u8>,
+    ) -> Result<()> {
+        instructions::multisig::create_transaction(ctx, pid, transaction_accounts, data)
+    }
+
+    pub fn approve(ctx: Context<Approve>) -> Result<()> {
+        instructions::multisig::approve(ctx)
     }
 }
