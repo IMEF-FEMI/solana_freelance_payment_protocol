@@ -33,11 +33,26 @@ The protocol facilitates the secure handling of funds for a freelance project be
 ## How to Test
 
 ### Prerequisites
+Before proceeding, ensure that you have the latest versions of Rust, Solana and the Anchor framework installed. Follow the instructions in the links below:
 
-- Install Solana and Rust. Instructions can be found in the following links:
-  - Solana: [Installation Guide](https://docs.solana.com/cli/install-solana-cli-tools)
-  - Rust: [Installation Guide](https://www.rust-lang.org/tools/install)
+1. **Set Up Rust**
+   - Rust is a programming language used for the protocol. Follow the instructions below to install Rust:
+     - Open your web browser and visit the Rust installation page: [Rust Installation Guide](https://www.rust-lang.org/tools/install).
+     - Follow the guide provided on the page to install Rust on your system.
 
+2. **Set Up Solana**
+   - Solana is the blockchain platform required for running the protocol. Follow the instructions below to install Solana:
+     - Open your web browser and visit the Solana installation page: [Solana Installation Guide](https://docs.solana.com/cli/install-solana-cli-tools).
+     - Follow the guide provided on the page to install Solana on your system.
+
+3. **Set Up Anchor**
+   - Anchor is a framework used for Solana smart contract development. Follow the instructions below to install Anchor:
+     - Open your web browser and visit the Solana installation page: [Solana Installation Guide](https://www.anchor-lang.com/docs/installation).
+     - Follow the guide provided on the page to install Anchor on your system.
+
+
+
+Make sure you complete this additional step before proceeding with the rest of the installation instructions.
 ### Minor Notes
 
 Before proceeding with the installation, it's important to understand the available instructions provided by the protocol. Here are some notable functions and their purposes:
@@ -72,17 +87,8 @@ Here are the step-by-step installation instructions for newbies to follow:
      $ cd freelance_payment_protocol
      ```
 
-2. **Set Up Rust**
-   - Rust is a programming language used for the protocol. Follow the instructions below to install Rust:
-     - Open your web browser and visit the Rust installation page: [Rust Installation Guide](https://www.rust-lang.org/tools/install).
-     - Follow the guide provided on the page to install Rust on your system.
 
-3. **Set Up Solana**
-   - Solana is the blockchain platform required for running the protocol. Follow the instructions below to install Solana:
-     - Open your web browser and visit the Solana installation page: [Solana Installation Guide](https://docs.solana.com/cli/install-solana-cli-tools).
-     - Follow the guide provided on the page to install Solana on your system.
-
-4. **Build and Test the Protocol**
+2. **Build and Test the Protocol**
    - Once you have Solana and Rust installed, proceed with the following commands:
      - Install the required dependencies:
 
@@ -93,7 +99,7 @@ Here are the step-by-step installation instructions for newbies to follow:
      - Build the protocol program:
 
        ```
-       $ yarn run build:program
+       $ anchor build
        ```
 
      - Run the protocol tests:
